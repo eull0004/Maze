@@ -96,3 +96,8 @@ class Maze:
         txt += "━━━┛\n"
 
         return txt
+    
+    
+    def remove_wall(self, c1:tuple, c2:tuple):
+        self.neighbors[c1].add(c2)
+        self.neighbors[c2].add(c1)
