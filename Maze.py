@@ -1,3 +1,4 @@
+from random import *
 class Maze:
     """
     Classe Labyrinthe
@@ -200,10 +201,7 @@ class Maze:
             if c in self.neighbors[self.get_contiguous_cells(c)[i]] and self.get_contiguous_cells(c)[i] in self.neighbors[c]:
                 access.append(self.get_contiguous_cells(c)[i])
         return access 
-    
-    """
-    Méthode d'instance permettant d'obtenir la liste des murs d'une cellule c1 placées en paramètre.
-    """
+
     def get_cell_walls(self, c1):
         L = []
         c2 = (c1[0],c1[1]+1)
@@ -213,3 +211,49 @@ class Maze:
         if c3 in self.get_cells() and c3 not in self.neighbors[c1]:
             L.append((c1,c3))
         return L 
+
+
+"""
+    Méthode de classe générant aléatoirement un arbre binaire de hauteur h et de largeur w placés en paramètre.
+    Elle consiste en la suppression des murs Est et Sud d'une cellule
+"""
+    @classmethod
+    def gen_btree(self,h,w):
+        self = Maze(h, w, empty = False)
+        for i in range(h):
+            for j in range(w):
+                if len(self.get_cell_walls((i,j))) == 2:
+                    a = randint(0, 1)
+                    if a == 1:
+                        self.remove_wall((i,j),(i+1,j))
+                    if a == 0:
+                        self.remove_wall((i,j),(i,j+1))
+                elif len(self.get_cell_walls((i,j))) == 1:
+                    self.remove_wall((i,j), self.get_cell_walls((i,j))[0][1])
+        return self
+
+"""
+Méthode de classe générant aléaoirement un arbre de hauteur h et de largeur w placé en paramètre.
+Cette fois-ci, les murs sont rétirés en ligne et toujours le côté Est
+"""
+    @classmethod
+    def gen_sidewinder(self,h,w):
+        self = Maze(h, w, empty = False)
+        for i in range(h-1):
+            sequence = []
+            for j in range(w-1):
+                sequence.append((i,j))
+                a = randint(0, 1)
+                if a == 0:
+                    self.remove_wall((i,j), (i,j+1))
+                if a == 1:
+                    b = randint(0, len(sequence)-1)
+                    self.remove_wall(sequence[b], (sequence[b][0]+1,sequence[b][1]))
+                    sequence = []
+            sequence.append((i,w-1))
+            c = randint(0, len(sequence)-1)
+            print(sequence[c][0])
+            self.remove_wall(sequence[c], (sequence[c][0]+1,sequence[c][1]))
+        for k in range(w-1):
+            self.remove_wall((h-1,k),(h-1,k+1))
+        return self 
