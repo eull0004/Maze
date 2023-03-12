@@ -9,10 +9,11 @@ class Maze:
     """
     def __init__(self, height, width, empty):
         """
-        Constructeur d'un labyrinthe de height cellules de haut 
-        et de width cellules de large 
+        Constructeur d'un labyrinthe de height cellules de haut,
+        de width cellules de large et d'un empty ayant comme valeur un booléen
         Les voisinages sont initialisés à des ensembles vides
-        Remarque : dans le labyrinthe créé, chaque cellule est complètement emmurée
+        Si empty = True, contruction d'une grille où chaque cellule a pour voisines celles qu'elles touchent donc aucun mur n'est généré
+        Et si empty = False, construction d'une grille où aucune cellule n’a de voisines donc tous les murs sont générés.
         """
         self.height    = height
         self.width     = width
