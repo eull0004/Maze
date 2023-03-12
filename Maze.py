@@ -212,11 +212,7 @@ class Maze:
             L.append((c1,c3))
         return L 
 
-
-"""
-    Méthode de classe générant aléatoirement un arbre binaire de hauteur h et de largeur w placés en paramètre.
-    Elle consiste en la suppression des murs Est et Sud d'une cellule
-"""
+    
     @classmethod
     def gen_btree(self,h,w):
         self = Maze(h, w, empty = False)
@@ -232,10 +228,7 @@ class Maze:
                     self.remove_wall((i,j), self.get_cell_walls((i,j))[0][1])
         return self
 
-"""
-Méthode de classe générant aléaoirement un arbre de hauteur h et de largeur w placé en paramètre.
-Cette fois-ci, les murs sont rétirés en ligne et toujours le côté Est
-"""
+    
     @classmethod
     def gen_sidewinder(self,h,w):
         self = Maze(h, w, empty = False)
@@ -252,7 +245,6 @@ Cette fois-ci, les murs sont rétirés en ligne et toujours le côté Est
                     sequence = []
             sequence.append((i,w-1))
             c = randint(0, len(sequence)-1)
-            print(sequence[c][0])
             self.remove_wall(sequence[c], (sequence[c][0]+1,sequence[c][1]))
         for k in range(w-1):
             self.remove_wall((h-1,k),(h-1,k+1))
