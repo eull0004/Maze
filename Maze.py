@@ -7,7 +7,7 @@ class Maze:
       - clés : sommets
       - valeurs : ensemble des sommets voisins accessibles
     """
-    def __init__(self, height, width):
+    def __init__(self, height, width, empty):
         """
         Constructeur d'un labyrinthe de height cellules de haut 
         et de width cellules de large 
@@ -17,7 +17,27 @@ class Maze:
         self.height    = height
         self.width     = width
         self.neighbors = {(i,j): set() for i in range(height) for j in range (width)}
-
+        self.empty = empty
+        
+        if empty == True:
+             for i in range(1,height):
+                for j in range(width):
+                    self.neighbors[(i,j)].add((i-1,j)) 
+                    self.neighbors[(i-1,j)].add((i,j))
+                    self.neighbors[(j,i)].add((j,i-1)) 
+                    self.neighbors[(j,i-1)].add((j,i)) 
+        elif empty == False:
+            for i in range(1,height):
+                for j in range(width):
+                    if (i,j) in self.neighbors[(i-1,j)]:
+                        self.neighbors[(i-1,j)].remove((i,j)) 
+                    elif (i-1,j) in self.neighbors[(i,j)]:
+                        self.neighbors[(i,j)].remove((i-1,j))
+                    elif (j,i) in self.neighbors[(j,i-1)]:
+                        self.neighbors[(j,i-1)].remove((j,i)) 
+                    elif (j,i-1) in self.neighbors[(j,i)]:
+                        self.neighbors[(j,i)].remove((j,i-1))
+        
     def info(self):
         """
         **NE PAS MODIFIER CETTE MÉTHODE**
