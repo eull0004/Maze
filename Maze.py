@@ -200,3 +200,16 @@ class Maze:
             if c in self.neighbors[self.get_contiguous_cells(c)[i]] and self.get_contiguous_cells(c)[i] in self.neighbors[c]:
                 access.append(self.get_contiguous_cells(c)[i])
         return access 
+    
+    """
+    Méthode d'instance permettant d'obtenir la liste des murs d'une cellule c1 placées en paramètre.
+    """
+    def get_cell_walls(self, c1):
+        L = []
+        c2 = (c1[0],c1[1]+1)
+        c3 = (c1[0]+1,c1[1])
+        if c2 in self.get_cells() and c2 not in self.neighbors[c1]:
+            L.append((c1,c2))
+        if c3 in self.get_cells() and c3 not in self.neighbors[c1]:
+            L.append((c1,c3))
+        return L 
