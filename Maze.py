@@ -276,6 +276,10 @@ class Maze:
     
     
     @classmethod
+    
+    #Méthode d'instance permettant de généré aléatoirement une grille.
+    #Pour ceci, on explore en profondeur aléatoirement le labyrinthe et on casse au fur et à mesure les murs
+    
     def gen_exploration(self,h,w):
         self = Maze(h , w, empty = False)
         all_cells = []
@@ -369,3 +373,124 @@ class Maze:
             if len(marquage) == len(all_cells):
                 marquage_toutes_cellules = True
         return self
+    
+    def overlay(self, content=None):
+    
+    #Rendu en mode texte, sur la sortie standard, \
+    #dun labyrinthe avec du contenu dans les cellules
+    #Argument:
+        #content (dict) : dictionnaire tq content[cell] contient le caractère à afficher au milieu de la cellule
+    #Retour:
+        #string
+        if content is None:
+            content = {(i,j):' ' for i in range(self.height) for j in range(self.width)}
+        else:
+        # Python >=3.9
+        #content = content | {(i, j): ' ' for i in range(
+        #    self.height) for j in range(self.width) if (i,j) not in content}
+        # Python <3.9
+            new_content = {(i, j): ' ' for i in range(self.height) for j in range(self.width) if (i,j) not in content}
+            content = {**content, **new_content}
+        txt = r""
+    # Première ligne
+        txt += "┏"
+        for j in range(self.width-1):
+            txt += "━━━┳"
+        txt += "━━━┓\n"
+        txt += "┃"
+        for j in range(self.width-1):
+            txt += " "+content[(0,j)]+" ┃" if (0,j+1) not in self.neighbors[(0,j)] else " "+content[(0,j)]+"  "
+        txt += " "+content[(0,self.width-1)]+" ┃\n"
+    # Lignes normales
+        for i in range(self.height-1):
+            txt += "┣"
+            for j in range(self.width-1):
+                txt += "━━━╋" if (i+1,j) not in self.neighbors[(i,j)] else "   ╋"
+            txt += "━━━┫\n" if (i+1,self.width-1) not in self.neighbors[(i,self.width-1)] else "   ┫\n"
+            txt += "┃"
+            for j in range(self.width):
+                txt += " "+content[(i+1,j)]+" ┃" if (i+1,j+1) not in self.neighbors[(i+1,j)] else " "+content[(i+1,j)]+"  "
+            txt += "\n"
+    # Bas du tableau
+        txt += "┗"
+        for i in range(self.width-1):
+            txt += "━━━┻"
+        txt += "━━━┛\n"
+        return txt
+
+    """
+    Méthode d'instance retournant la liste contenant les cellules parcourut pour résoudre le  labyrinte. 
+    A partir d'une cellule de départ et d'une de fin.
+    Ici, le parcours est en profondeur
+    """
+    def solve_dfs(self, start: tuple, stop: tuple):
+        chemin = []
+        trouve = False
+        pile = [start]
+        visible = [start]
+        pred = {start : start}
+        while len(pile) != 0 and trouve == False:
+            c = pile.pop(0)
+            if c == stop:
+                trouve = True 
+            else:
+                for voisin in self.get_reachable_cells(c):
+                    if voisin not in visible:
+                        visible.append(voisin)
+                        pile.insert(0, voisin)
+                        pred[voisin] = c
+        c = stop
+        while c != start:
+            chemin.append(c)
+            c = pred[c]
+        chemin.append(start)
+        return chemin 
+
+    """
+    Exactement même méthode que la précédente sauf que la résolution se fait en largeur
+    """
+    def solve_bfs(self, start: tuple, stop: tuple):
+        chemin = []
+        trouve = False
+        file = [start]
+        visible = [start]
+        pred = {start : start}
+        while len(file) != 0 and trouve == False:
+            c = file.pop(0)
+            if c == stop:
+                trouve = True 
+            else:
+                for voisin in self.get_reachable_cells(c):
+                    if voisin not in visible:
+                        visible.append(voisin)
+                        file.insert((len(file)-1), voisin)
+                        pred[voisin] = c
+        c = stop
+        while c != start:
+            chemin.append(c)
+            c = pred[c]
+        chemin.append(start)
+        return chemin 
+
+    """
+    Méthode d'instance permettant d'évaluer le chemin le plus court entre deux cellules (c1 et c2) en prenant en compte les murs
+    """
+    def distance_geo(self,c1,c2):
+        L = [self.solve_dfs(c1, c2).reverse()]
+        return len(L)-1
+
+    """
+    Pareil que la méthode précédente sauf que là, on fait comme ci le labyrinte n'etait pas rempli de ses murs
+    """
+    def distance_man(self,c1,c2):
+        L = self.solve_dfs(c1, c2)
+        abs = 0
+        ord = 0
+        for i in range(len(L)):
+            abs += L[i][0]
+            ord += L[i][0]
+        if abs > ord:
+            res = abs-ord
+        else:
+            res = ord-abs
+        return res 
