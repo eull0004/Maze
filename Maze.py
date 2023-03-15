@@ -296,3 +296,69 @@ class Maze:
                 pile.insert(0, cell_contigue)
                 
         return self
+    
+    @classmethod
+    def gen_wilson(self,h,w):
+        self = Maze(h,w,empty = False)
+        all_cells = []
+        for elmt in self.get_cells():
+            all_cells.append(elmt)
+        marquage = [all_cells[randint(0,len(all_cells)-1)]]
+        marquage_toutes_cellules = False
+        while not marquage_toutes_cellules: #Tant qu’il reste des cellules non marquées :
+            # - Choisir une cellule de départ au hasard, parmi les cellules non marquées
+            cellule_depart = (-1,-1)
+            while cellule_depart == (-1,-1):
+                cellule_test = all_cells[randint(0,len(all_cells)-1)]
+                if not cellule_test in marquage:
+                    cellule_depart = cellule_test
+            
+            '''- Effectuer une marche aléatoire jusqu’à ce qu’une cellule marquée soit atteinte (en cas de boucle, 
+            si la tête du snake se mord la queue, « couper » la boucle formée 
+            [autrement dit, supprimer toutes étapes depuis le précédent passage])'''
+            chemin = []
+            murs_to_destruct = []
+            boucleEnCours = True
+            cellule_actuelle = cellule_depart
+            while boucleEnCours:
+                # obtenir les cellules contigu et en sélectionner 1 au hasard
+                cell_contigu = []
+                for elmnt in self.get_contiguous_cells(cellule_actuelle):
+                    cell_contigu.append(elmnt)
+                cellule_suivante = cell_contigu[randint(0,len(cell_contigu)-1)]
+                
+                while cellule_suivante == cellule_depart: # cas ou je me mords la qeue
+                    cellule_suivante = cell_contigu[randint(0,len(cell_contigu)-1)]
+                
+                # ajout de la cellule suivante  dans l'historique
+                chemin.append(cellule_suivante)
+                
+                #ajout des murs (cellule précédente et cellule sélectionner)
+                '''wall_got_destruct = False'''  # a t-on casser un mur lors de notre passage
+                if [cellule_suivante,cellule_actuelle] in self.get_walls():
+                    murs_to_destruct.append([cellule_suivante,cellule_actuelle])
+                    '''wall_got_destruct = True'''
+                if [cellule_actuelle,cellule_suivante] in self.get_walls(): # meme que au dessus mais il est impossible que les deux s'active en meme temps
+                    murs_to_destruct.append([cellule_actuelle,cellule_suivante])
+                    '''wall_got_destruct = True'''
+                # stoper la boucle
+                if cellule_suivante in marquage:
+                    boucleEnCours = False
+                cellule_suivante = cellule_actuelle
+            
+            # - Marquer chaque cellule du chemin, et casser tous les murs rencontrés, jusqu’à la cellule marquée
+            marquage.append(chemin)
+            for i in range(len(murs_to_destruct)):
+                self.remove_wall(murs_to_destruct[i][0],murs_to_destruct[i][1])
+            
+            # verif état marquage  pour stop boucle
+            marquage_sans_doublons = []
+            compteur = 0
+            for elt in marquage:
+                for elmt in all_cells:
+                    if elt == elmt and elt not in marquage_sans_doublons:
+                        compteur += 1
+                        marquage_sans_doublons.append(elt)
+            if compteur == len(all_cells):
+                marquage_toutes_cellules = True
+        return self
