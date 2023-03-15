@@ -273,28 +273,41 @@ class Maze:
                     if fusion[cle] == label_cell:
                         fusion[cle] = fusion[l_mur[i][1]]
         return self
+    
+    
     @classmethod
     def gen_exploration(self,h,w):
         self = Maze(h , w, empty = False)
-        a = randint(0, len(self.get_cells())-1)
-        cellule = self.get_cells()[a]
+        all_cells = []
+        for elt in self.get_cells():
+            all_cells.append(elt)
+        cellule = all_cells[randint(0, len(all_cells)-1)]
+        all_walls = []
+        for elt in self.get_walls():
+            if not elt in all_walls:
+                all_walls.append(elt)
         visite = [cellule]
         pile = [cellule]
 
         while len(pile) != 0:
-            cell_retire = pile.pop(0)
-            if self.neighbors[cell_retire] not in visite:
-                pile.insert(0, cell_retire)
-                not_visite = []
-                for i in range(len(self.get_contiguous_cells(cell_retire))):
-                    if self.get_contiguous_cells(cell_retire) not in visite:
-                        not_visite.append(self.get_contiguous_cells(cell_retire)[i])
-                b = randint(0,len(not_visite)-1)
-                cell_contigue = not_visite[b]
-                self.remove_wall(pile[0], cell_contigue)
-                visite.append(cell_contigue)
-                pile.insert(0, cell_contigue)
+            top_pile = pile.pop()
+            voisins_non_visite = False
+            for elt in self.neighbors[top_pile]:
+                if not elt in visite:
+                    voisins_non_visite = True
+            
+            if voisins_non_visite:
+                pile.append(top_pile)
+                contigu_non_visit = []
+                for elt in self.get_contiguous_cells(top_pile):
+                    if not elt in visite:
+                        contigu_non_visit.append(elt)
+                selected_cell = contigu_non_visit[randint(0, len(contigu_non_visit)-1)]
+            
+                self.remove_wall(top_pile,selected_cell)
                 
+                visite.append(selected_cell)
+                pile.append(selected_cell)
         return self
     
     @classmethod
@@ -303,19 +316,14 @@ class Maze:
         all_cells = []
         for elmt in self.get_cells():
             all_cells.append(elmt)
-        marquage = [all_cells[randint(0,len(all_cells)-1)]]
+        shuffle(all_cells)
+        marquage = []
+        marquage.append(all_cells[0])
         marquage_toutes_cellules = False
         while not marquage_toutes_cellules: #Tant qu’il reste des cellules non marquées :
             # - Choisir une cellule de départ au hasard, parmi les cellules non marquées
-            cellule_depart = (-1,-1)
-            while cellule_depart == (-1,-1):
-                cellule_test = all_cells[randint(0,len(all_cells)-1)]
-                if not cellule_test in marquage:
-                    cellule_depart = cellule_test
+            cellule_depart = all_cells[1]
             
-            '''- Effectuer une marche aléatoire jusqu’à ce qu’une cellule marquée soit atteinte (en cas de boucle, 
-            si la tête du snake se mord la queue, « couper » la boucle formée 
-            [autrement dit, supprimer toutes étapes depuis le précédent passage])'''
             chemin = []
             murs_to_destruct = []
             boucleEnCours = True
@@ -325,40 +333,39 @@ class Maze:
                 cell_contigu = []
                 for elmnt in self.get_contiguous_cells(cellule_actuelle):
                     cell_contigu.append(elmnt)
-                cellule_suivante = cell_contigu[randint(0,len(cell_contigu)-1)]
+                shuffle(cell_contigu)
+                cellule_suivante = cell_contigu[0]
                 
                 while cellule_suivante == cellule_depart: # cas ou je me mords la qeue
-                    cellule_suivante = cell_contigu[randint(0,len(cell_contigu)-1)]
+                    shuffle(cell_contigu)
+                    cellule_suivante = cell_contigu[0]
                 
                 # ajout de la cellule suivante  dans l'historique
                 chemin.append(cellule_suivante)
                 
                 #ajout des murs (cellule précédente et cellule sélectionner)
-                '''wall_got_destruct = False'''  # a t-on casser un mur lors de notre passage
                 if [cellule_suivante,cellule_actuelle] in self.get_walls():
                     murs_to_destruct.append([cellule_suivante,cellule_actuelle])
-                    '''wall_got_destruct = True'''
                 if [cellule_actuelle,cellule_suivante] in self.get_walls(): # meme que au dessus mais il est impossible que les deux s'active en meme temps
                     murs_to_destruct.append([cellule_actuelle,cellule_suivante])
-                    '''wall_got_destruct = True'''
                 # stoper la boucle
                 if cellule_suivante in marquage:
                     boucleEnCours = False
-                cellule_suivante = cellule_actuelle
+                # mise a jour des elt a marquer
+                cellule_actuelle = cellule_suivante
             
             # - Marquer chaque cellule du chemin, et casser tous les murs rencontrés, jusqu’à la cellule marquée
-            marquage.append(chemin)
+            for elt in chemin:
+                if elt not in marquage:
+                    marquage.append(elt)
             for i in range(len(murs_to_destruct)):
                 self.remove_wall(murs_to_destruct[i][0],murs_to_destruct[i][1])
             
             # verif état marquage  pour stop boucle
-            marquage_sans_doublons = []
-            compteur = 0
             for elt in marquage:
                 for elmt in all_cells:
-                    if elt == elmt and elt not in marquage_sans_doublons:
-                        compteur += 1
-                        marquage_sans_doublons.append(elt)
-            if compteur == len(all_cells):
+                    if elt == elmt and elt not in marquage:
+                        marquage.append(elt)
+            if len(marquage) == len(all_cells):
                 marquage_toutes_cellules = True
         return self
