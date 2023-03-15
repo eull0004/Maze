@@ -449,7 +449,7 @@ class Maze:
     """
     Exactement même méthode que la précédente sauf que la résolution se fait en largeur
     """
-    def solve_bfs(self, start: tuple, stop: tuple):
+    '''def solve_bfs(self, start: tuple, stop: tuple):
         chemin = []
         trouve = False
         file = [start]
@@ -470,7 +470,7 @@ class Maze:
             chemin.append(c)
             c = pred[c]
         chemin.append(start)
-        return chemin 
+        return chemin''' 
 
     """
     Méthode d'instance permettant d'évaluer le chemin le plus court entre deux cellules (c1 et c2) en prenant en compte les murs
