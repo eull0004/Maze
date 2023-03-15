@@ -140,13 +140,9 @@ class Maze:
         L = []
         for i in range(self.height):
             for j in range(self.width):
-                c1 = (i,j)
-                c2 = (c1[0],c1[1]+1)
-                c3 = (c1[0]+1,c1[1])
-                if c2 in self.get_cells() and c2 not in self.neighbors[c1]:
-                    L.append((c1,c2))
-                elif c3 in self.get_cells() and c3 not in self.neighbors[c1]:
-                    L.append((c1,c3))
+                for elt in self.get_contiguous_cells((i,j)):
+                    if not elt in self.neighbors[(i,j)] and [elt,(i,j)] not in L:
+                        L.append([(i,j),elt])
         return L
 
     """
@@ -248,4 +244,55 @@ class Maze:
             self.remove_wall(sequence[c], (sequence[c][0]+1,sequence[c][1]))
         for k in range(w-1):
             self.remove_wall((h-1,k),(h-1,k+1))
-        return self 
+        return self
+    
+
+    @classmethod
+    def gen_fusion(self,h,w):
+        self = Maze(h, w, empty = False)
+        cells = []
+        count = 1
+        label = []
+        for i in range(h):
+            for j in range((w)):
+                cells.append((i,j))
+                label.append(count)
+                count += 1
+        fusion = dict(zip(cells, label))
+        l_mur = []
+        
+        for elmnt in self.get_walls():
+            l_mur.append(elmnt)
+        shuffle(l_mur)
+        
+        for i in range((h*w)-1):
+            if fusion[l_mur[i][0]] != fusion[l_mur[i][1]]:
+                self.remove_wall(l_mur[i][0], l_mur[i][1])
+                label_cell = fusion[l_mur[i][0]]
+                for cle in fusion.keys():
+                    if fusion[cle] == label_cell:
+                        fusion[cle] = fusion[l_mur[i][1]]
+        return self
+    @classmethod
+    def gen_exploration(self,h,w):
+        self = Maze(h , w, empty = False)
+        a = randint(0, len(self.get_cells())-1)
+        cellule = self.get_cells()[a]
+        visite = [cellule]
+        pile = [cellule]
+
+        while len(pile) != 0:
+            cell_retire = pile.pop(0)
+            if self.neighbors[cell_retire] not in visite:
+                pile.insert(0, cell_retire)
+                not_visite = []
+                for i in range(len(self.get_contiguous_cells(cell_retire))):
+                    if self.get_contiguous_cells(cell_retire) not in visite:
+                        not_visite.append(self.get_contiguous_cells(cell_retire)[i])
+                b = randint(0,len(not_visite)-1)
+                cell_contigue = not_visite[b]
+                self.remove_wall(pile[0], cell_contigue)
+                visite.append(cell_contigue)
+                pile.insert(0, cell_contigue)
+                
+        return self
